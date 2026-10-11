@@ -16,6 +16,7 @@ import { DEFAULT_NAGEKEO_WATER_DATA } from './data/defaultNagekeoData';
 import { safeStorage } from './utils/storage';
 import { 
   autoFetchFromGoogleSheet,
+  deleteDataFromGoogleSheetWebhook,
 } from './services/googleSheetService';
 import { Header } from './components/Header';
 import { VerticalTabs, TabItem } from './components/VerticalTabs';
@@ -102,8 +103,9 @@ export default function App() {
     setWaterData((prev) => [record, ...prev]);
   };
 
-  const handleDeleteRecord = (id: string) => {
+  const handleDeleteRecord = async (id: string) => {
     setWaterData((prev) => prev.filter((item) => item.id !== id));
+    await deleteDataFromGoogleSheetWebhook(id);
   };
 
   const handleClearAllRecords = () => {

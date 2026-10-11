@@ -5,7 +5,7 @@
 export const GOOGLE_APPS_SCRIPT_CODE = `/**
  * =====================================================================
  * SISTEM INFORMASI DATABASE AIR BERSIH KABUPATEN NAGEKEO (CIPTA KARYA)
- * Google Apps Script Web App Endpoint (doPost & doGet)
+ * Google Apps Script Web App Endpoint (doPost & doGet - Dua Arah / Insert & Delete)
  * =====================================================================
  * PANDUAN PEMASANGAN:
  * 1. Buka spreadsheet Google Sheets data air bersih Anda
@@ -18,14 +18,43 @@ export const GOOGLE_APPS_SCRIPT_CODE = `/**
  * 8. Klik "Terapkan", salin URL Web App yang dihasilkan.
  */
 
-// 1. Fungsi penanganan POST (Menerima input data baru otomatis dari Web Applet)
+// 1. Fungsi penanganan POST (Menerima input baru atau perintah hapus dua arah dari Web Applet)
 function doPost(e) {
   var lock = LockService.getScriptLock();
-  lock.tryLock(10000); // Kunci selama 10 detik untuk mencegah tumpang-tindih data
+  lock.tryLock(10000); // Kunci selama 10 detik
 
   try {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     
+    var payload = {};
+    if (e && e.postData && e.postData.contents) {
+      payload = JSON.parse(e.postData.contents);
+    } else if (e && e.parameter) {
+      payload = e.parameter;
+    }
+
+    // Tangani aksi HAPUS (DELETE) dua arah
+    if (payload.action === 'delete' && payload.id) {
+      var targetId = String(payload.id).trim();
+      var rows = sheet.getDataRange().getValues();
+      var deletedCount = 0;
+
+      // Telusuri dari baris terbawah ke baris ke-2 (1-indexed)
+      for (var i = rows.length - 1; i >= 1; i--) {
+        var rowId = String(rows[i][0] || "").trim();
+        if (rowId === targetId) {
+          sheet.deleteRow(i + 1);
+          deletedCount++;
+        }
+      }
+
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        message: "Data dengan ID " + targetId + " berhasil dihapus dari Google Sheet!",
+        deletedRows: deletedCount
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
     // Pastikan header kolom sudah ada jika lembar masih kosong
     if (sheet.getLastRow() === 0) {
       sheet.appendRow([
@@ -35,6 +64,7 @@ function doPost(e) {
         "Desa",
         "Dusun",
         "Jenis Sumber",
+        "Nama Sumber Air",
         "Sistem Distribusi",
         "Debit (L/s)",
         "Jumlah SR",
@@ -48,15 +78,7 @@ function doPost(e) {
         "Keterangan",
         "Waktu Input"
       ]);
-      // Format baris header tebal dan berwarna biru dinas
-      sheet.getRange(1, 1, 1, 18).setFontWeight("bold").setBackground("#dbeafe");
-    }
-
-    var payload = {};
-    if (e && e.postData && e.postData.contents) {
-      payload = JSON.parse(e.postData.contents);
-    } else if (e && e.parameter) {
-      payload = e.parameter;
+      sheet.getRange(1, 1, 1, 19).setFontWeight("bold").setBackground("#dbeafe");
     }
 
     var d = payload.data || payload;
@@ -69,6 +91,7 @@ function doPost(e) {
       d.desa || "-",
       d.dusun || "",
       d.jenisSumber || "Mata Air",
+      d.namaSumberAir || "",
       d.sistemDistribusi || "Perpipaan Gravitasi",
       Number(d.debitLiterPerDetik) || 0,
       Number(d.jumlahSR) || 0,
@@ -114,7 +137,6 @@ function doGet(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    var headers = rows[0];
     var data = [];
 
     for (var i = 1; i < rows.length; i++) {
@@ -126,17 +148,18 @@ function doGet(e) {
         desa: String(row[3] || ""),
         dusun: String(row[4] || ""),
         jenisSumber: String(row[5] || "Mata Air"),
-        sistemDistribusi: String(row[6] || "Perpipaan Gravitasi"),
-        debitLiterPerDetik: Number(row[7]) || 0,
-        jumlahSR: Number(row[8]) || 0,
-        jiwaTerlayani: Number(row[9]) || 0,
-        kondisi: String(row[10] || "Berfungsi Baik"),
-        tahunBangun: Number(row[11]) || 2024,
-        sumberDana: String(row[12] || ""),
-        pengelola: String(row[13] || ""),
-        koordinatLat: Number(row[14]) || -8.675,
-        koordinatLng: Number(row[15]) || 121.285,
-        keterangan: String(row[16] || "")
+        namaSumberAir: String(row[6] || ""),
+        sistemDistribusi: String(row[7] || "Perpipaan Gravitasi"),
+        debitLiterPerDetik: Number(row[8]) || 0,
+        jumlahSR: Number(row[9]) || 0,
+        jiwaTerlayani: Number(row[10]) || 0,
+        kondisi: String(row[11] || "Berfungsi Baik"),
+        tahunBangun: Number(row[12]) || 2024,
+        sumberDana: String(row[13] || ""),
+        pengelola: String(row[14] || ""),
+        koordinatLat: Number(row[15]) || -8.675,
+        koordinatLng: Number(row[16]) || 121.285,
+        keterangan: String(row[17] || "")
       });
     }
 

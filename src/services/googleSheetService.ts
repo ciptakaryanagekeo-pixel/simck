@@ -55,6 +55,43 @@ export async function sendDataToGoogleSheetWebhook(
 }
 
 /**
+ * Perintah hapus dua arah otomatis ke Google Sheet via Webhook
+ */
+export async function deleteDataFromGoogleSheetWebhook(
+  id: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const payload = {
+      action: 'delete',
+      sheetId: EMBEDDED_SHEET_ID,
+      tab: EMBEDDED_SHEET_TAB,
+      id: id,
+      timestamp: new Date().toISOString(),
+    };
+
+    await fetch(EMBEDDED_WEBHOOK_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    return {
+      success: true,
+      message: 'Perintah hapus berhasil dikirim ke Google Sheet!',
+    };
+  } catch (error) {
+    console.warn('Webhook delete dispatch notice:', error);
+    return {
+      success: true,
+      message: 'Data dihapus dari aplikasi lokal.',
+    };
+  }
+}
+
+/**
  * Fetch otomatis data dari Google Sheet di background
  */
 export async function autoFetchFromGoogleSheet(): Promise<SaranaAirBersih[]> {
