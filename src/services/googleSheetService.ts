@@ -7,10 +7,10 @@ import { SaranaAirBersih, KondisiStatus, JenisSumber, SistemDistribusi } from '.
 
 // Webhook Google Apps Script & Google Sheet ID resmi Cipta Karya Nagekeo
 export const EMBEDDED_WEBHOOK_URL =
-  'https://script.google.com/macros/s/AKfycbz_NagekeoAirBersih_PUPR_CiptaKarya/exec';
+  'https://script.google.com/macros/s/AKfycbwt1X7FcqMzlojVyMg33OCdQFL0W5P2FiG2NOGZbxjwxsuMzEk5E1eOAJsWo_N1bRSf/exec';
 
 export const EMBEDDED_SHEET_ID =
-  '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms';
+  '1STHBRtBQTeLPjHKYETGqaZpMOFAV9oXNNBnhzdHc1gw';
 
 export const EMBEDDED_SHEET_TAB = 'Sheet1';
 
