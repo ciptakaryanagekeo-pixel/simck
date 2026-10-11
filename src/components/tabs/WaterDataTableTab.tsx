@@ -350,7 +350,12 @@ export const WaterDataTableTab: React.FC<WaterDataTableTabProps> = ({
                         <span className="text-[11px] text-slate-500">Desa {item.desa}</span>
                       </td>
                       <td className="py-3 px-4 text-slate-700 whitespace-nowrap">
-                        {item.jenisSumber}
+                        <span className="font-semibold block">{item.jenisSumber}</span>
+                        {item.namaSumberAir && (
+                          <span className="text-[11px] font-medium text-blue-700 block">
+                            💧 {item.namaSumberAir}
+                          </span>
+                        )}
                       </td>
                       <td className="py-3 px-4 text-slate-600 text-[11px] whitespace-nowrap">
                         {item.sistemDistribusi}

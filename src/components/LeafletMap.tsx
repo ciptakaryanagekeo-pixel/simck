@@ -255,7 +255,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
           <div style="background: #f8fafc; padding: 6px; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 11px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
             <div>Debit: <strong style="color: #2563eb;">${item.debitLiterPerDetik} L/s</strong></div>
             <div>Pelayanan: <strong style="color: #0f172a;">${item.jumlahSR} SR</strong></div>
-            <div>Sumber: <span>${item.jenisSumber}</span></div>
+            <div>Sumber: <span>${item.jenisSumber}${item.namaSumberAir ? '<br/><span style="color:#0284c7;font-weight:600;">💧 ' + item.namaSumberAir + '</span>' : ''}</span></div>
             <div>Sistem: <span>${item.sistemDistribusi}</span></div>
           </div>
           <div style="margin-top: 6px; font-size: 10px; color: #64748b; font-family: monospace;">

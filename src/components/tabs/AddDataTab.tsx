@@ -23,6 +23,7 @@ export const AddDataTab: React.FC<AddDataTabProps> = ({
     desa: '',
     dusun: '',
     jenisSumber: 'Mata Air',
+    namaSumberAir: '',
     sistemDistribusi: 'Perpipaan Gravitasi',
     debitLiterPerDetik: 5.0,
     jumlahSR: 100,
@@ -90,6 +91,7 @@ export const AddDataTab: React.FC<AddDataTabProps> = ({
       desa: formData.desa.trim(),
       dusun: formData.dusun?.trim() || '',
       jenisSumber: (formData.jenisSumber as JenisSumber) || 'Mata Air',
+      namaSumberAir: formData.namaSumberAir?.trim() || '',
       sistemDistribusi: (formData.sistemDistribusi as SistemDistribusi) || 'Perpipaan Gravitasi',
       debitLiterPerDetik: Number(formData.debitLiterPerDetik) || 0,
       jumlahSR: Number(formData.jumlahSR) || 0,
@@ -136,6 +138,49 @@ export const AddDataTab: React.FC<AddDataTabProps> = ({
       koordinatLng: coord.lng,
     }));
   };
+
+  const getSourceDetails = (source: JenisSumber | undefined) => {
+    switch (source) {
+      case 'Mata Air':
+        return {
+          label: 'Nama Mata Air',
+          placeholder: 'Contoh: Mata Air Wae Mokel / Mata Air Wae Kolo / Wae Seser',
+          helper: 'Nama mata air baku alami di lapangan',
+        };
+      case 'Sumur Bor':
+        return {
+          label: 'Nama / Kode Sumur Bor',
+          placeholder: 'Contoh: Sumur Bor Danga SB-01 / SB Marapokot',
+          helper: 'Nama atau nomor register sumur bor',
+        };
+      case 'Sungai / Air Permukaan':
+        return {
+          label: 'Nama Sungai / Aliran Air',
+          placeholder: 'Contoh: Sungai Aesesa / Kali Wae Bawa',
+          helper: 'Nama sungai atau aliran air permukaan',
+        };
+      case 'Embung':
+        return {
+          label: 'Nama Embung',
+          placeholder: 'Contoh: Embung Rigi / Embung Wolowae',
+          helper: 'Nama embung penampungan air baku',
+        };
+      case 'Penampungan Air Hujan (PAH)':
+        return {
+          label: 'Nama Titik / Lokasi PAH',
+          placeholder: 'Contoh: PAH Komunal Dusun 2 / PAH Desa',
+          helper: 'Nama fasilitas atau lokasi penampungan air hujan',
+        };
+      default:
+        return {
+          label: 'Nama Sumber Air',
+          placeholder: 'Contoh: Nama sumber air baku',
+          helper: 'Nama sumber air baku',
+        };
+    }
+  };
+
+  const activeSource = getSourceDetails(formData.jenisSumber as JenisSumber);
 
   return (
     <div className="space-y-4">
@@ -344,7 +389,7 @@ export const AddDataTab: React.FC<AddDataTabProps> = ({
             2. Parameter Teknis Debit & Layanan Masyarakat
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
             <div>
               <label className="block text-slate-700 font-semibold mb-1">
                 Jenis Sumber Air Baku
@@ -352,7 +397,7 @@ export const AddDataTab: React.FC<AddDataTabProps> = ({
               <select
                 value={formData.jenisSumber}
                 onChange={(e) => setFormData({ ...formData, jenisSumber: e.target.value as JenisSumber })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium"
               >
                 {JENIS_SUMBER_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>
@@ -362,6 +407,29 @@ export const AddDataTab: React.FC<AddDataTabProps> = ({
               </select>
             </div>
 
+            <div className="md:col-span-2">
+              <label className="block text-slate-700 font-semibold mb-1 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <span className="text-blue-600 font-bold">{activeSource.label}</span>
+                  <span className="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.2 rounded-full font-bold">
+                    Khusus {formData.jenisSumber}
+                  </span>
+                </span>
+                <span className="text-[10px] text-slate-400 font-normal">
+                  {activeSource.helper}
+                </span>
+              </label>
+              <input
+                type="text"
+                placeholder={activeSource.placeholder}
+                value={formData.namaSumberAir || ''}
+                onChange={(e) => setFormData({ ...formData, namaSumberAir: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 font-medium text-slate-900 bg-blue-50/20"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs mt-4">
             <div>
               <label className="block text-slate-700 font-semibold mb-1">
                 Sistem Distribusi

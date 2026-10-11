@@ -9,6 +9,7 @@ export interface SaranaAirBersih {
   desa: string;
   dusun?: string;
   jenisSumber: JenisSumber;
+  namaSumberAir?: string; // Nama Mata Air / Nama Sumur Bor / Nama Sungai / Nama Embung / Nama PAH
   sistemDistribusi: SistemDistribusi;
   debitLiterPerDetik: number;
   jumlahSR: number; // Sambungan Rumah

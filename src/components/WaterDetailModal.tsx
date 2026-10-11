@@ -112,6 +112,11 @@ export const WaterDetailModal: React.FC<WaterDetailModalProps> = ({ item, onClos
             <div className="p-3 bg-slate-50 rounded-lg">
               <span className="text-xs text-slate-500 block">Jenis Sumber Air Baku</span>
               <span className="font-semibold text-slate-800">{item.jenisSumber}</span>
+              {item.namaSumberAir && (
+                <span className="text-xs font-bold text-blue-700 block mt-0.5">
+                  💧 {item.namaSumberAir}
+                </span>
+              )}
             </div>
 
             <div className="p-3 bg-slate-50 rounded-lg">

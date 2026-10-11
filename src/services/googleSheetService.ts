@@ -155,6 +155,8 @@ export function parseCSVToWaterData(csvText: string): SaranaAirBersih[] {
     else if (/embung/i.test(jenisRaw)) jenisSumber = 'Embung';
     else if (/hujan|pah/i.test(jenisRaw)) jenisSumber = 'Penampungan Air Hujan (PAH)';
 
+    const namaSumberAir = getField(rowObj, ['nama sumber air', 'nama sumber', 'nama mata air', 'mata air', 'nama sumur', 'nama embung']) || '';
+
     const sistemRaw = getField(rowObj, ['sistem distribusi', 'sistem', 'distribusi']) || 'Perpipaan Gravitasi';
     let sistemDistribusi: SistemDistribusi = 'Perpipaan Gravitasi';
     if (/pompa &|kombinasi/i.test(sistemRaw)) sistemDistribusi = 'Kombinasi Pompa & Gravitasi';
@@ -183,6 +185,7 @@ export function parseCSVToWaterData(csvText: string): SaranaAirBersih[] {
       desa,
       dusun,
       jenisSumber,
+      namaSumberAir,
       sistemDistribusi,
       debitLiterPerDetik: debit,
       jumlahSR: sr,
@@ -270,6 +273,8 @@ export function parseGVizResponse(gvizText: string): SaranaAirBersih[] {
     else if (/embung/i.test(jenisRaw)) jenisSumber = 'Embung';
     else if (/hujan|pah/i.test(jenisRaw)) jenisSumber = 'Penampungan Air Hujan (PAH)';
 
+    const namaSumberAir = getField(rowObj, ['nama sumber air', 'nama sumber', 'nama mata air', 'mata air', 'nama sumur', 'nama embung']) || '';
+
     const sistemRaw = getField(rowObj, ['sistem distribusi', 'sistem', 'distribusi']) || 'Perpipaan Gravitasi';
     let sistemDistribusi: SistemDistribusi = 'Perpipaan Gravitasi';
     if (/pompa &|kombinasi/i.test(sistemRaw)) sistemDistribusi = 'Kombinasi Pompa & Gravitasi';
@@ -298,6 +303,7 @@ export function parseGVizResponse(gvizText: string): SaranaAirBersih[] {
       desa,
       dusun,
       jenisSumber,
+      namaSumberAir,
       sistemDistribusi,
       debitLiterPerDetik: debit,
       jumlahSR: sr,
