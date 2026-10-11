@@ -259,7 +259,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
             <div>Sistem: <span>${item.sistemDistribusi}</span></div>
           </div>
           <div style="margin-top: 6px; font-size: 10px; color: #64748b; font-family: monospace;">
-            Koordinat: ${lat.toFixed(4)}, ${lng.toFixed(4)}
+            Koordinat: ${lat}, ${lng}
           </div>
         </div>
       `;

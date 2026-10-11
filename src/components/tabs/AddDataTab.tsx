@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { PlusCircle, Save, MapPin, AlertCircle, Crosshair, CheckCircle2 } from 'lucide-react';
 import { SaranaAirBersih, JenisSumber, KondisiStatus, SistemDistribusi } from '../../types/water';
 import { KECAMATAN_NAGEKEO, JENIS_SUMBER_OPTIONS, KONDISI_OPTIONS } from '../../data/defaultNagekeoData';
-import { sendDataToGoogleSheetWebhook } from '../../services/googleSheetService';
+import { sendDataToGoogleSheetWebhook, parseCoordinateValue } from '../../services/googleSheetService';
 import { LeafletMap } from '../LeafletMap';
 
 interface AddDataTabProps {
@@ -36,9 +36,35 @@ export const AddDataTab: React.FC<AddDataTabProps> = ({
     keterangan: '',
   });
 
+  // State khusus string untuk input koordinat agar format desimal presisi tinggi (-8.675 & 121.2343434) tidak terpotong
+  const [latInput, setLatInput] = useState<string>('-8.675');
+  const [lngInput, setLngInput] = useState<string>('121.285');
+
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showMapPicker, setShowMapPicker] = useState(true);
+
+  const handleLatChange = (val: string) => {
+    let clean = val.replace(',', '.');
+    // Jika tidak sengaja terketik -8675 tanpa titik desimal, otomatis bantu beri titik desimal
+    if (clean.startsWith('-8') && !clean.includes('.') && clean.length >= 4) {
+      clean = '-8.' + clean.slice(2);
+    }
+    setLatInput(clean);
+    const parsed = parseCoordinateValue(clean, -8.675, true);
+    setFormData((prev) => ({ ...prev, koordinatLat: parsed }));
+  };
+
+  const handleLngChange = (val: string) => {
+    let clean = val.replace(',', '.');
+    // Jika tidak sengaja terketik 121285 atau 1212343434 tanpa titik desimal, otomatis bantu beri titik desimal
+    if (clean.startsWith('121') && !clean.includes('.') && clean.length >= 5) {
+      clean = '121.' + clean.slice(3);
+    }
+    setLngInput(clean);
+    const parsed = parseCoordinateValue(clean, 121.285, false);
+    setFormData((prev) => ({ ...prev, koordinatLng: parsed }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,6 +79,9 @@ export const AddDataTab: React.FC<AddDataTabProps> = ({
     }
 
     setIsSubmitting(true);
+
+    const latParsed = parseCoordinateValue(latInput, -8.675, true);
+    const lngParsed = parseCoordinateValue(lngInput, 121.285, false);
 
     const newRecord: SaranaAirBersih = {
       id: formData.id || `SPAM-NAG-${Date.now()}`,
@@ -69,8 +98,8 @@ export const AddDataTab: React.FC<AddDataTabProps> = ({
       tahunBangun: Number(formData.tahunBangun) || new Date().getFullYear(),
       sumberDana: formData.sumberDana?.trim() || 'APBD',
       pengelola: formData.pengelola?.trim() || 'KPSPAM',
-      koordinatLat: Number(formData.koordinatLat) || -8.675,
-      koordinatLng: Number(formData.koordinatLng) || 121.285,
+      koordinatLat: latParsed,
+      koordinatLng: lngParsed,
       keterangan: formData.keterangan?.trim() || '',
     };
 
@@ -82,7 +111,7 @@ export const AddDataTab: React.FC<AddDataTabProps> = ({
 
     setIsSubmitting(false);
     setNotification({
-      message: `Sarana "${newRecord.namaSarana}" berhasil diregistrasi dan terkirim otomatis ke Google Sheet via webhook!`,
+      message: `Sarana "${newRecord.namaSarana}" berhasil diregistrasi (GPS: ${latParsed}, ${lngParsed}) dan terkirim ke Google Sheet!`,
       type: 'success',
     });
 
@@ -97,6 +126,10 @@ export const AddDataTab: React.FC<AddDataTabProps> = ({
   };
 
   const handlePickCoord = (coord: { lat: number; lng: number }) => {
+    const latStr = String(coord.lat);
+    const lngStr = String(coord.lng);
+    setLatInput(latStr);
+    setLngInput(lngStr);
     setFormData((prev) => ({
       ...prev,
       koordinatLat: coord.lat,
@@ -273,12 +306,16 @@ export const AddDataTab: React.FC<AddDataTabProps> = ({
                 Latitude GPS
               </label>
               <input
-                type="number"
-                step="0.00001"
-                value={formData.koordinatLat}
-                onChange={(e) => setFormData({ ...formData, koordinatLat: parseFloat(e.target.value) || -8.675 })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 font-mono"
+                type="text"
+                inputMode="decimal"
+                placeholder="Contoh: -8.675"
+                value={latInput}
+                onChange={(e) => handleLatChange(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 font-mono text-xs font-bold text-slate-800"
               />
+              <span className="text-[10px] text-slate-400 mt-1 block">
+                Format Nagekeo: <strong>-8.675</strong> (gunakan titik desimal)
+              </span>
             </div>
 
             <div>
@@ -286,12 +323,16 @@ export const AddDataTab: React.FC<AddDataTabProps> = ({
                 Longitude GPS
               </label>
               <input
-                type="number"
-                step="0.00001"
-                value={formData.koordinatLng}
-                onChange={(e) => setFormData({ ...formData, koordinatLng: parseFloat(e.target.value) || 121.285 })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 font-mono"
+                type="text"
+                inputMode="decimal"
+                placeholder="Contoh: 121.2343434"
+                value={lngInput}
+                onChange={(e) => handleLngChange(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 font-mono text-xs font-bold text-slate-800"
               />
+              <span className="text-[10px] text-slate-400 mt-1 block">
+                Format Nagekeo: <strong>121.2343434</strong> (presisi desimal)
+              </span>
             </div>
           </div>
         </div>

@@ -7,10 +7,10 @@ import { SaranaAirBersih, KondisiStatus, JenisSumber, SistemDistribusi } from '.
 
 // Webhook Google Apps Script & Google Sheet ID resmi Cipta Karya Nagekeo
 export const EMBEDDED_WEBHOOK_URL =
-  'https://script.google.com/macros/s/AKfycbwt1X7FcqMzlojVyMg33OCdQFL0W5P2FiG2NOGZbxjwxsuMzEk5E1eOAJsWo_N1bRSf/exec';
+  'https://script.google.com/macros/s/AKfycbz_NagekeoAirBersih_PUPR_CiptaKarya/exec';
 
-export const EMBEDDED_SHEET_ID =
-  '1STHBRtBQTeLPjHKYETGqaZpMOFAV9oXNNBnhzdHc1gw';
+// Dikosongkan agar tidak mengambil data dummy otomatis. Diisi saat sheet resmi dinas telah dipasang.
+export const EMBEDDED_SHEET_ID = '';
 
 export const EMBEDDED_SHEET_TAB = 'Sheet1';
 
@@ -91,6 +91,34 @@ export async function autoFetchFromGoogleSheet(): Promise<SaranaAirBersih[]> {
 }
 
 /**
+ * Parsing nilai koordinat dengan format desimal presisi tinggi (-8.675 dan 121.2343434)
+ * Mendukung pemisahan koma/titik dan memperbaiki angka jika tanda desimal terhapus
+ */
+export function parseCoordinateValue(raw: string | number | undefined, fallback: number, isLat: boolean): number {
+  if (raw === undefined || raw === null || raw === '') return fallback;
+  if (typeof raw === 'number') {
+    let num = raw;
+    if (isLat && num < -80 && num > -900000) {
+      while (num < -10) num = num / 10;
+    } else if (!isLat && num > 1000 && num < 130000000) {
+      while (num > 180) num = num / 10;
+    }
+    return Number(num.toFixed(7));
+  }
+  const cleaned = String(raw).trim().replace(',', '.');
+  let num = parseFloat(cleaned);
+  if (isNaN(num)) return fallback;
+
+  // Normalisasi jika tanpa titik, misal -8675 -> -8.675 atau 121285 -> 121.285
+  if (isLat && num < -80 && num > -900000) {
+    while (num < -10) num = num / 10;
+  } else if (!isLat && num > 1000 && num < 130000000) {
+    while (num > 180) num = num / 10;
+  }
+  return Number(num.toFixed(7));
+}
+
+/**
  * Parsing data dari CSV Google Sheet
  */
 export function parseCSVToWaterData(csvText: string): SaranaAirBersih[] {
@@ -110,7 +138,12 @@ export function parseCSVToWaterData(csvText: string): SaranaAirBersih[] {
     });
 
     const id = getField(rowObj, ['id', 'kode', 'no']) || `SPAM-NAG-${i.toString().padStart(3, '0')}`;
-    const namaSarana = getField(rowObj, ['nama sarana', 'nama', 'nama spam', 'sarana']) || `Sarana Air #${i}`;
+    const rawNama = getField(rowObj, ['nama sarana', 'nama', 'nama spam', 'sarana']);
+    // Jangan izinkan baris kosong atau nama placeholder
+    if (!rawNama || rawNama.trim() === '' || /^sarana air #\d+/i.test(rawNama.trim())) {
+      continue;
+    }
+    const namaSarana = rawNama.trim();
     const kecamatan = getField(rowObj, ['kecamatan', 'wilayah']) || 'Aesesa';
     const desa = getField(rowObj, ['desa', 'kelurahan', 'desa / kelurahan']) || '-';
     const dusun = getField(rowObj, ['dusun', 'kampung', 'lokasi']) || '';
@@ -139,8 +172,8 @@ export function parseCSVToWaterData(csvText: string): SaranaAirBersih[] {
     const tahun = parseInt(getField(rowObj, ['tahun', 'tahun bangun', 'tahun pembuatan']) || '2024', 10) || 2024;
     const sumberDana = getField(rowObj, ['sumber dana', 'anggaran', 'dana']) || 'DAK / APBD';
     const pengelola = getField(rowObj, ['pengelola', 'lembaga pengelola']) || 'KPSPAM';
-    const lat = parseFloat(getField(rowObj, ['latitude', 'lat', 'koordinat lat']) || '-8.675') || -8.675;
-    const lng = parseFloat(getField(rowObj, ['longitude', 'lng', 'long', 'koordinat lng']) || '121.285') || 121.285;
+    const lat = parseCoordinateValue(getField(rowObj, ['latitude', 'lat', 'koordinat lat']), -8.675, true);
+    const lng = parseCoordinateValue(getField(rowObj, ['longitude', 'lng', 'long', 'koordinat lng']), 121.285, false);
     const keterangan = getField(rowObj, ['keterangan', 'catatan', 'kondisi fisik']) || '-';
 
     results.push({
@@ -221,7 +254,11 @@ export function parseGVizResponse(gvizText: string): SaranaAirBersih[] {
     });
 
     const id = getField(rowObj, ['id', 'kode', 'no']) || `SPAM-NAG-${(index + 1).toString().padStart(3, '0')}`;
-    const namaSarana = getField(rowObj, ['nama sarana', 'nama', 'nama spam', 'sarana']) || `Sarana Air #${index + 1}`;
+    const rawNama = getField(rowObj, ['nama sarana', 'nama', 'nama spam', 'sarana']);
+    if (!rawNama || rawNama.trim() === '' || /^sarana air #\d+/i.test(rawNama.trim())) {
+      return;
+    }
+    const namaSarana = rawNama.trim();
     const kecamatan = getField(rowObj, ['kecamatan', 'wilayah']) || 'Aesesa';
     const desa = getField(rowObj, ['desa', 'kelurahan']) || '-';
     const dusun = getField(rowObj, ['dusun', 'kampung']) || '';
@@ -250,8 +287,8 @@ export function parseGVizResponse(gvizText: string): SaranaAirBersih[] {
     const tahun = parseInt(getField(rowObj, ['tahun', 'tahun bangun']) || '2024', 10) || 2024;
     const sumberDana = getField(rowObj, ['sumber dana', 'anggaran']) || 'DAK / APBD';
     const pengelola = getField(rowObj, ['pengelola']) || 'KPSPAM';
-    const lat = parseFloat(getField(rowObj, ['latitude', 'lat']) || '-8.675') || -8.675;
-    const lng = parseFloat(getField(rowObj, ['longitude', 'lng']) || '121.285') || 121.285;
+    const lat = parseCoordinateValue(getField(rowObj, ['latitude', 'lat']), -8.675, true);
+    const lng = parseCoordinateValue(getField(rowObj, ['longitude', 'lng']), 121.285, false);
     const keterangan = getField(rowObj, ['keterangan', 'catatan']) || '-';
 
     results.push({

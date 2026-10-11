@@ -40,10 +40,15 @@ export default function App() {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const isOldDummy = parsed.some((p: SaranaAirBersih) => p.id === 'SPAM-AES-001' && p.namaSarana.includes('Mbay'));
-          if (!isOldDummy) {
-            return parsed;
-          }
+          // Bersihkan data dummy lama (SPAM-AES-001, Sarana Air #1..10, dsb)
+          const valid = parsed.filter(
+            (p: SaranaAirBersih) =>
+              p.namaSarana &&
+              !p.namaSarana.includes('Mbay') &&
+              !/^sarana air #/i.test(p.namaSarana) &&
+              p.id !== 'SPAM-AES-001'
+          );
+          return valid;
         }
       } catch {
         return DEFAULT_NAGEKEO_WATER_DATA;
@@ -56,9 +61,12 @@ export default function App() {
   const [selectedItem, setSelectedItem] = useState<SaranaAirBersih | null>(null);
   const [showDoPostModal, setShowDoPostModal] = useState<boolean>(false);
 
-  // Simpan data lokal setiap ada update
+  // Simpan data lokal setiap ada update (hanya simpan data yang valid tanpa placeholder)
   useEffect(() => {
-    safeStorage.setItem('nagekeo_air_bersih_data', JSON.stringify(waterData));
+    const cleanData = waterData.filter(
+      (p) => p.namaSarana && !/^sarana air #/i.test(p.namaSarana) && p.id !== 'SPAM-AES-001'
+    );
+    safeStorage.setItem('nagekeo_air_bersih_data', JSON.stringify(cleanData));
   }, [waterData]);
 
   // Sinkronisasi otomatis di latar belakang saat aplikasi dibuka
@@ -67,7 +75,12 @@ export default function App() {
     let isMounted = true;
     autoFetchFromGoogleSheet().then((remoteData) => {
       if (isMounted && remoteData && remoteData.length > 0) {
-        setWaterData(remoteData);
+        const cleanRemote = remoteData.filter(
+          (p) => p.namaSarana && !/^sarana air #/i.test(p.namaSarana)
+        );
+        if (cleanRemote.length > 0) {
+          setWaterData(cleanRemote);
+        }
       }
     });
     return () => {
@@ -87,6 +100,15 @@ export default function App() {
 
   const handleAddRecord = (record: SaranaAirBersih) => {
     setWaterData((prev) => [record, ...prev]);
+  };
+
+  const handleDeleteRecord = (id: string) => {
+    setWaterData((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const handleClearAllRecords = () => {
+    setWaterData([]);
+    safeStorage.setItem('nagekeo_air_bersih_data', JSON.stringify([]));
   };
 
   // Jika belum login, tampilkan layar login dengan animasi air bersih
@@ -162,6 +184,8 @@ export default function App() {
               onSelectItem={setSelectedItem}
               onNavigateTab={setActiveTab}
               onImportData={(imported) => setWaterData(imported)}
+              onDeleteItem={handleDeleteRecord}
+              onClearAll={handleClearAllRecords}
             />
           )}
 

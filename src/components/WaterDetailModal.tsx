@@ -139,9 +139,9 @@ export const WaterDetailModal: React.FC<WaterDetailModalProps> = ({ item, onClos
             </div>
 
             <div className="p-3 bg-slate-50 rounded-lg">
-              <span className="text-xs text-slate-500 block">Koordinat Geografis</span>
-              <span className="font-mono text-xs font-semibold text-slate-800">
-                {item.koordinatLat.toFixed(4)}, {item.koordinatLng.toFixed(4)}
+              <span className="text-xs text-slate-500 block">Koordinat Geografis (WGS84)</span>
+              <span className="font-mono text-xs font-bold text-blue-700">
+                {item.koordinatLat}, {item.koordinatLng}
               </span>
             </div>
           </div>

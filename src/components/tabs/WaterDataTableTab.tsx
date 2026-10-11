@@ -12,7 +12,8 @@ import {
   XCircle,
   FileSpreadsheet,
   Upload,
-  Database
+  Database,
+  Trash2
 } from 'lucide-react';
 import { SaranaAirBersih, KondisiStatus } from '../../types/water';
 import { KECAMATAN_NAGEKEO, JENIS_SUMBER_OPTIONS } from '../../data/defaultNagekeoData';
@@ -23,6 +24,8 @@ interface WaterDataTableTabProps {
   onSelectItem: (item: SaranaAirBersih) => void;
   onNavigateTab: (tabId: string) => void;
   onImportData?: (imported: SaranaAirBersih[]) => void;
+  onDeleteItem?: (id: string) => void;
+  onClearAll?: () => void;
 }
 
 export const WaterDataTableTab: React.FC<WaterDataTableTabProps> = ({
@@ -30,6 +33,8 @@ export const WaterDataTableTab: React.FC<WaterDataTableTabProps> = ({
   onSelectItem,
   onNavigateTab,
   onImportData,
+  onDeleteItem,
+  onClearAll,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedKecamatan, setSelectedKecamatan] = useState<string>('Semua Kecamatan');
@@ -161,6 +166,21 @@ export const WaterDataTableTab: React.FC<WaterDataTableTabProps> = ({
             <Download className="w-3.5 h-3.5 text-slate-600" />
             <span>Ekspor CSV</span>
           </button>
+
+          {waterData.length > 0 && onClearAll && (
+            <button
+              onClick={() => {
+                if (window.confirm('Apakah Anda yakin ingin menghapus seluruh data sarana air ini?')) {
+                  onClearAll();
+                }
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl transition-colors cursor-pointer"
+              title="Hapus semua baris data"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+              <span>Hapus Semua</span>
+            </button>
+          )}
 
           <button
             onClick={() => onNavigateTab('add')}
@@ -365,6 +385,19 @@ export const WaterDataTableTab: React.FC<WaterDataTableTabProps> = ({
                               <Copy className="w-3.5 h-3.5" />
                             )}
                           </button>
+
+                          {onDeleteItem && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onDeleteItem(item.id);
+                              }}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                              title="Hapus Sarana Ini"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
