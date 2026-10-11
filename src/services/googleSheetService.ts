@@ -7,12 +7,12 @@ import { SaranaAirBersih, KondisiStatus, JenisSumber, SistemDistribusi } from '.
 
 // Webhook Google Apps Script & Google Sheet ID resmi Cipta Karya Nagekeo
 export const EMBEDDED_WEBHOOK_URL =
-  'https://script.google.com/macros/s/AKfycbz_NagekeoAirBersih_PUPR_CiptaKarya/exec';
+  'https://script.google.com/macros/s/AKfycbwtlhGMV4b2Zc-iBmRjObcEff4RxQ6RE0h5JoPlwmd-_aBq65MjPgDzGD9nnJ6mBju8/exec';
 
 // Dikosongkan agar tidak mengambil data dummy otomatis. Diisi saat sheet resmi dinas telah dipasang.
-export const EMBEDDED_SHEET_ID = '';
+export const EMBEDDED_SHEET_ID = '1STHBRtBQTeLPjHKYETGqaZpMOFAV9oXNNBnhzdHc1gw';
 
-export const EMBEDDED_SHEET_TAB = 'Sheet1';
+export const EMBEDDED_SHEET_TAB = 'data_air_bersih';
 
 /**
  * Pengiriman data otomatis ke Webhook Google Sheet saat input sarana baru
