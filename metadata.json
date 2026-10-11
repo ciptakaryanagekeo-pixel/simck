@@ -1,0 +1,6 @@
+{
+  "name": "Database Air Bersih Nagekeo",
+  "description": "Sistem Informasi & Database Sarana Air Bersih Kabupaten Nagekeo (Bidang Cipta Karya) terintegrasi Google Sheet dengan tampilan antarmuka Vertikal Tab.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
